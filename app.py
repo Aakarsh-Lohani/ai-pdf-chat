@@ -1,9 +1,11 @@
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain_community.vectorstores import FAISS
+
+
 
 # Get text from each pdf file and return them as single string after concatenation
 def get_pdf_text(pdf_files):
@@ -25,10 +27,11 @@ def get_text_chunks(raw_text):
     chunks=text_splitter.split_text(raw_text)
     return chunks
 
-# Create vector store(knowledge base) from the text chunks using FAISS and OpenAI embeddings
+# Create vector store(knowledge base) from the text chunks using FAISS and HuggingFaceEmbeddings , model all-MiniLM-L6-v2
 def get_vectorstore(text_chunks):
-    embeddings=HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
-    vectorstore =FAISS.from_texts(texts=text_chunks,embedding=embeddings)
+    embeddings = HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2')
+    
+    vectorstore = FAISS.from_texts(text_chunks, embeddings)
     return vectorstore
 
 
@@ -49,15 +52,16 @@ def main():
                 with st.spinner("Processing the raw text..."):
                     raw_text = get_pdf_text(pdf_files)
                     
+                    
 
                 # get the chunks
                 with st.spinner("Processing the text chunks..."):
                     text_chunks=get_text_chunks(raw_text)
                     
+                    
                 # create vector store
                 with st.spinner("Creating the vector store..."):
                     vectorstore=get_vectorstore(text_chunks)
-                    st.write(vectorstore)
 
 
 if __name__=="__main__":
